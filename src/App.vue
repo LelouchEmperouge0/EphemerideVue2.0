@@ -8,21 +8,18 @@
     <template v-else>
       <EventSection
         v-if="donnees.events?.length"
-        :title="'Événements'"
+        title="Événements"
         :items="donnees.events"
-        type="events"
       />
       <EventSection
         v-if="donnees.births?.length"
-        :title="'Naissances'"
+        title="Naissances"
         :items="donnees.births"
-        type="births"
       />
       <EventSection
         v-if="donnees.deaths?.length"
-        :title="'Décès'"
+        title="Décès"
         :items="donnees.deaths"
-        type="deaths"
       />
       <EmptyState v-if="vide" />
     </template>
@@ -48,11 +45,6 @@ const moisNoms = [
   'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'
 ]
 
-const jourFrancais = computed(() => {
-  const d = new Date(dateISO.value || new Date().toISOString().split('T')[0])
-  return `${d.getDate()} ${moisNoms[d.getMonth()]}`
-})
-
 const vide = computed(() => {
   const d = donnees.value
   return !d.events?.length && !d.births?.length && !d.deaths?.length
@@ -75,12 +67,11 @@ const chargerDonnees = async (mm, dd) => {
     const result = {}
 
     for (const t of types) {
+      // 🔧 URL corrigée : plus d'espaces
       const url = `https://fr.wikipedia.org/api/rest_v1/feed/onthisday/${t}/${mm}/${dd}`
-      const response = await fetch(url, {
-        headers: {
-          'User-Agent': 'Ephemeride Divin (divintona@gmail.com) - Projet personnel'
-        }
-      })
+      
+      // 🔧 Suppression du User-Agent (bloqué par Firefox)
+      const response = await fetch(url)
 
       if (response.ok) {
         const data = await response.json()
@@ -91,6 +82,7 @@ const chargerDonnees = async (mm, dd) => {
               .map(page => ({
                 title: page.title || '',
                 thumbnail: page.thumbnail?.source || null,
+                // 🔧 URL corrigée
                 wiki_url: page.title ? `https://fr.wikipedia.org/wiki/${encodeURIComponent(page.title)}` : null
               }))
               .filter(p => p.title)
